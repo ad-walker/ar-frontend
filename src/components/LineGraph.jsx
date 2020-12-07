@@ -17,7 +17,7 @@ const LineGraph = (props) => {
   const [hourlyUses, setHourlyUses] = useState([]);
 
   useEffect(() => {
-    // Create a 500 random timestamps to simulate
+    // Create a 1000 random timestamps to simulate
     // our dataset.
     let timeStamps = [];
     for (let i = 0; i < 1000; i++) {
@@ -48,16 +48,18 @@ const LineGraph = (props) => {
       let hour = time.getHours();
       // Increment the uses for that hour.
       let newUses = hoursArray[hour].uses + 1;
-      hoursArray[hour].uses = newUses;
       // Update maxUses to determine the hour with the most
       // usage.
       if (newUses >= maxUses) {
         maxUses = newUses;
         setPeakUse(hour);
       }
+      // Update entry for the hour.
+      hoursArray[hour].uses = newUses;
     });
-    // Quick and dirty means of depicting the graph starting
-    // at 6AM.
+    // This is hacky, but in the interest of time, slice off the pre-dawn hours
+    // and tack them onto the end of the array for purposes of aligning the graph to a
+    // 6:00AM start time.
     let preDawn = hoursArray.splice(0, 6);
     preDawn.forEach((ele) => hoursArray.push(ele));
     setHourlyUses(hoursArray);
@@ -71,7 +73,6 @@ const LineGraph = (props) => {
   };
 
   return (
-    // Inline styling in the interest of time.
     <div className="container">
       <div className="header">
         <div className="header-text">Most Popular Times</div>

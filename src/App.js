@@ -3,9 +3,7 @@ import LineGraph from "./components/LineGraph";
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <LineGraph/>
-      </header>
+      <LineGraph />
     </div>
   );
 }
