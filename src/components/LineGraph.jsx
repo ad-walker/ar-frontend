@@ -67,9 +67,9 @@ const LineGraph = (props) => {
 
   // Format the 24 hour time as 12 hour string.
   const formatTime = () => {
-    if (peakUse == 12) return "12:00 AM";
     // Handle midnight seperately.
-    else return peakUse <= 12 ? `${peakUse}:00 AM` : `${peakUse - 12}:00 PM`;
+    if (peakUse == 12) return "12:00 AM";
+    return peakUse < 12 ? `${peakUse}:00 AM` : `${peakUse - 12}:00 PM`;
   };
 
   return (
