@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const LineGraph = (props) => {
+const LineGraph = () => {
   const [hourlyUses, setHourlyUses] = useState();
   const [timeString, setTimeString] = useState('');
 
