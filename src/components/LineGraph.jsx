@@ -13,8 +13,8 @@ import {
 } from "recharts";
 
 const LineGraph = (props) => {
-  const [peakUse, setPeakUse] = useState();
-  const [hourlyUses, setHourlyUses] = useState([]);
+  const [hourlyUses, setHourlyUses] = useState();
+  const [timeString, setTimeString] = useState('');
 
   useEffect(() => {
     // Create a 1000 random timestamps to simulate
@@ -35,28 +35,59 @@ const LineGraph = (props) => {
     // timestamps.
     let hoursArray = [];
     // Create 24 objects, one for each hour to contain the
-    // number of uses, initialize each to zero.
+    // number of uses, key for the graph, and a string.
     for (let i = 0; i < 24; i++) {
-      hoursArray.push({ hour: i, uses: 0 });
+      let twelveHour = 0;
+      let postfix = "";
+      // Handle midnight
+      if(i == 0) {
+        twelveHour = 12;
+        postfix = "AM"
+      }
+      // Handle noon
+      else if(i == 12) {
+        twelveHour = i;
+        postfix = "PM"
+      }
+      // PM
+      else if(i > 12) {
+        twelveHour = i - 12;
+        postfix = "PM";
+      }
+      // AM
+      else {
+        twelveHour = i;
+        postfix = "AM";
+      }
+      const key = twelveHour + postfix;
+      const fullString = twelveHour + ":00 " + postfix;
+      hoursArray.push({ key, uses: 0, fullString });
     }
 
-    let maxUses = 0;
     // Loop over all of the timestamps, extracting the hour
     // and incrementing the corresponding value.
     timeStamps.forEach((time) => {
       // Extract the hour.
       let hour = time.getHours();
       // Increment the uses for that hour.
-      let newUses = hoursArray[hour].uses + 1;
-      // Update maxUses to determine the hour with the most
-      // usage.
-      if (newUses >= maxUses) {
-        maxUses = newUses;
-        setPeakUse(hour);
-      }
-      // Update entry for the hour.
-      hoursArray[hour].uses = newUses;
+      hoursArray[hour].uses++;
     });
+
+    // Find the hour with the max use.
+    let peakHour, maxUses = 0;
+    for(let i = 0; i < hoursArray.length; i++) {
+      if(hoursArray[i].uses > maxUses) {
+        maxUses = hoursArray[i].uses;
+        peakHour = i;
+      }
+    }
+
+    const hoursLen = hoursArray.length;
+    // JS modulo in case peak use is midnight, array index 0, prev hour will wrap
+    // to last element of the array.
+    const prevHour = ((peakHour - 1 % hoursLen) + hoursLen) % hoursLen;
+    setTimeString(`${hoursArray[prevHour].fullString} and ${hoursArray[peakHour].fullString}`)
+  
     // This is hacky, but in the interest of time, slice off the pre-dawn hours
     // and tack them onto the end of the array for purposes of aligning the graph to a
     // 6:00AM start time.
@@ -65,12 +96,6 @@ const LineGraph = (props) => {
     setHourlyUses(hoursArray);
   }, []);
 
-  // Format the 24 hour time as 12 hour string.
-  const formatTime = () => {
-    // Handle midnight seperately.
-    if (peakUse == 12) return "12:00 AM";
-    return peakUse < 12 ? `${peakUse}:00 AM` : `${peakUse - 12}:00 PM`;
-  };
 
   return (
     <div className="container">
@@ -86,12 +111,12 @@ const LineGraph = (props) => {
             data={hourlyUses}
             margin={{ top: 20, right: 50, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="hour" tick={{ fontSize: 15 }} />
+            <CartesianGrid strokeDasharray="2 2" />
+            <XAxis dataKey="key" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 15 }} />
             <Tooltip />
-            <ReferenceLine x="12" stroke="red" label="Noon" />
-            <ReferenceLine x="0" stroke="red" label="Midnight" />
+            <ReferenceLine x="12PM" stroke="red" label="Noon" />
+            <ReferenceLine x="12AM" stroke="red" label="Midnight" />
             <Line type="linear" dataKey="uses" stroke="#8884d8" />
           </LineChart>
         </ResponsiveContainer>
@@ -99,7 +124,7 @@ const LineGraph = (props) => {
       <div className="footer">
         <div className="body-text">
           <FiInfo style={{ marginRight: "10" }} />
-          This product is used most often around {formatTime()}
+          This product is most often used between {timeString}
         </div>
       </div>
     </div>
