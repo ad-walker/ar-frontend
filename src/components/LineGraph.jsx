@@ -17,10 +17,10 @@ const LineGraph = () => {
   const [timeString, setTimeString] = useState('');
 
   useEffect(() => {
-    // Create a 1000 random timestamps to simulate
+    // Create a random timestamps to simulate
     // our dataset.
     let timeStamps = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 500; i++) {
       let date = new Date(
         randInt(2019, 2020), // year
         randInt(1, 12), // month
@@ -37,34 +37,19 @@ const LineGraph = () => {
     // Create 24 objects, one for each hour to contain the
     // number of uses, key for the graph, and a string.
     for (let i = 0; i < 24; i++) {
-      let twelveHour = 0;
-      let postfix = "";
-      // Handle midnight
-      if(i == 0) {
+      // Convert 24 hour array index to 12 hour.
+      let twelveHour = i % 12;
+      // Handle midnight and noon.
+      if(twelveHour === 0)
         twelveHour = 12;
-        postfix = "AM"
-      }
-      // Handle noon
-      else if(i == 12) {
-        twelveHour = i;
-        postfix = "PM"
-      }
-      // PM
-      else if(i > 12) {
-        twelveHour = i - 12;
-        postfix = "PM";
-      }
-      // AM
-      else {
-        twelveHour = i;
-        postfix = "AM";
-      }
+      // Assign postfix based on 24 hour value of i.
+      const postfix = i >= 12 ? "PM" : "AM";
       const key = twelveHour + postfix;
       const fullString = twelveHour + ":00 " + postfix;
       hoursArray.push({ key, uses: 0, fullString });
     }
 
-    // Loop over all of the timestamps, extracting the hour
+    // Loop over all of the timestamps, extracting the hour key
     // and incrementing the corresponding value.
     timeStamps.forEach((time) => {
       // Extract the hour.
@@ -73,7 +58,8 @@ const LineGraph = () => {
       hoursArray[hour].uses++;
     });
 
-    // Find the hour with the max use.
+    // Once all timestamps have been added to the array of hours, get the hour/index
+    // with the most uses.
     let peakHour, maxUses = 0;
     for(let i = 0; i < hoursArray.length; i++) {
       if(hoursArray[i].uses > maxUses) {
@@ -83,7 +69,7 @@ const LineGraph = () => {
     }
 
     const hoursLen = hoursArray.length;
-    // JS modulo in case peak use is midnight, array index 0, prev hour will wrap
+    // JS modulo in case peak use is midnight (array index 0), prev hour will wrap
     // to last element of the array.
     const prevHour = ((peakHour - 1 % hoursLen) + hoursLen) % hoursLen;
     setTimeString(`${hoursArray[prevHour].fullString} and ${hoursArray[peakHour].fullString}`)
@@ -93,6 +79,7 @@ const LineGraph = () => {
     // 6:00AM start time.
     let preDawn = hoursArray.splice(0, 6);
     preDawn.forEach((ele) => hoursArray.push(ele));
+    // Finally, update state.
     setHourlyUses(hoursArray);
   }, []);
 
